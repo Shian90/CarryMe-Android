@@ -8,6 +8,7 @@ import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_login.*
 
 class Login : AppCompatActivity() {
@@ -33,24 +34,43 @@ class Login : AppCompatActivity() {
         }
         else
         {
-            //TODO: Check in category node of database before signing in
-
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Successfully signed in. Directing to " + category + " page", Toast.LENGTH_SHORT).show()
-                    if ( category == "Driver" )
+            var flag: Int = 0
+            val ref = FirebaseFirestore.getInstance().collection("$category")
+            Log.d("CHECK", "Checking $category database")
+            ref.addSnapshotListener { snap, e ->
+                if ( e != null )
+                {
+                    Log.d("CHECK", "${e.message}")
+                }
+                for ( doc in snap!! )
+                {
+                    val temp = doc.toObject(User::class.java)
+                    if ( temp.email.toString() == email )
                     {
-                        val intent = Intent(this, Driver::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK.or(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        startActivity(intent)
-                    }
-                    else if ( category == "Passenger" )
-                    {
-                        val intent = Intent(this, Passenger::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK.or(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        startActivity(intent)
+                        flag = 1
+                        break
                     }
                 }
+                if ( flag == 1 ) {
+                    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Successfully signed in. Directing to " + category + " page", Toast.LENGTH_SHORT).show()
+                            if (category == "Driver") {
+                                val intent = Intent(this, Driver::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK.or(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                startActivity(intent)
+                            } else if (category == "Passenger") {
+                                val intent = Intent(this, Passenger::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK.or(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                startActivity(intent)
+                            }
+                        }
+                }
+                else
+                {
+                    Toast.makeText(this, "User not found in database", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }
