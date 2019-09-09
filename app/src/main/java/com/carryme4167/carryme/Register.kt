@@ -26,15 +26,6 @@ class Register : AppCompatActivity() {
             val nid = nidText.text.toString()
             val drivingLicence = drivingLicenceText.text.toString()
 
-//            radioSelctor.checkedRadioButtonId({ radioSelctor, selectedId ->
-//                val cat = findViewById<RadioButton>(selectedId)
-//                Log.d("RADIO", "${cat.text.toString()}, $selectedId")
-//                if ( selectedId == R.id.passengerButton)
-//                    category = "Passenger"
-//                else
-//                    category = "Driver"
-//            })
-
             val cat = findViewById<RadioButton>(radioSelctor.checkedRadioButtonId)
             val category = cat.text.toString()
             Log.d("DEETS", "$username $email $password $phone $nid $drivingLicence $category")
